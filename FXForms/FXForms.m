@@ -642,6 +642,8 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
 @property (nonatomic, strong) NSMutableDictionary *controllerClassesForFieldClasses;
 
 @property (nonatomic, assign) UIEdgeInsets originalTableContentInset;
+@property (nonatomic, assign) BOOL isKeyboardOn;
+@property (nonatomic, assign) CGRect previousKeyboardRect;
 
 - (void)performAction:(SEL)selector withSender:(id)sender;
 - (UIViewController *)tableViewController;
@@ -1859,6 +1861,11 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
                                                  selector:@selector(keyboardWillHide:)
                                                      name:UIKeyboardWillHideNotification
                                                    object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(keyboardDidHide:)
+                                                     name:UIKeyboardDidHideNotification
+                                                   object:nil];
     }
     return self;
 }
@@ -2383,6 +2390,9 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
         CGFloat heightOfTableViewThatIsNotCoveredByKeyboard = self.tableView.frame.size.height - heightOfTableViewThatIsCoveredByKeyboard;
         
         UIEdgeInsets tableContentInset = self.tableView.contentInset;
+        if (self.isKeyboardOn) {
+            tableContentInset.bottom -= self.previousKeyboardRect.size.height;
+        }
         self.originalTableContentInset = tableContentInset;
         tableContentInset.bottom = heightOfTableViewThatIsCoveredByKeyboard;
         
@@ -2427,7 +2437,9 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
         }
         
         [UIView commitAnimations];
+        self.previousKeyboardRect = keyboardFrame;
     }
+    self.isKeyboardOn = YES;
 }
 
 - (void)keyboardWillHide:(NSNotification *)note
@@ -2448,6 +2460,11 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
         self.originalTableContentInset = UIEdgeInsetsZero;
         [UIView commitAnimations];
     }
+}
+
+- (void)keyboardDidHide:(NSNotification *)note
+{
+    self.isKeyboardOn = NO;
 }
 
 @end

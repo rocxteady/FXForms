@@ -2533,7 +2533,14 @@ static void FXFormPreprocessFieldDictionary(NSMutableDictionary *dictionary)
     
     if (!self.tableView)
     {
-        self.tableView = [[UITableView alloc] initWithFrame:[UIScreen mainScreen].applicationFrame
+        CGRect applicationFrame;
+        if ([UIDevice currentDevice].systemVersion.floatValue < 9.0) {
+            applicationFrame = [UIScreen mainScreen].applicationFrame;
+        }
+        else {
+            applicationFrame = [UIScreen mainScreen].bounds;
+        }
+        self.tableView = [[UITableView alloc] initWithFrame:applicationFrame
                                                       style:UITableViewStyleGrouped];
         if ([self.tableView respondsToSelector:@selector(cellLayoutMarginsFollowReadableWidth)])
         {
